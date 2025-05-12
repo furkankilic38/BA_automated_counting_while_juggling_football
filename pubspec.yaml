@@ -1,0 +1,109 @@
+name: footy_testing
+description: "A new Flutter project."
+
+
+publish_to: 'none' 
+
+
+
+
+
+
+
+
+
+
+
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+
+
+
+
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  
+  
+  cupertino_icons: ^1.0.8
+  flutter_vision: ^1.1.4
+  camera: ^0.11.0+2
+  another_flutter_splash_screen: ^1.2.1
+  fluttertoast: ^8.2.12
+  shared_preferences: ^2.0.15
+  sqflite: ^2.4.1
+  path: ^1.9.0
+  tflite_flutter: ^0.11.0
+  image: ^3.2.2
+  intl: ^0.20.2
+  audioplayers: ^5.2.1
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  
+  
+  
+  
+  
+  flutter_lints: ^5.0.0
+
+
+
+
+
+flutter:
+
+  
+  
+  
+  uses-material-design: true
+
+  
+  assets:
+    - assets/
+    - assets/labels.txt
+    - assets/yolov8n_int8.tflite
+    - assets/movenet_lightning.tflite
+    - assets/footballista_background1.jpg
+    - assets/yolov8n-pose_float32.tflite
+    - assets/yolov8n-pose_float16.tflite
+    - assets/yolov8.tflite
+    - assets/zaehlsound.mp3
+
+  
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

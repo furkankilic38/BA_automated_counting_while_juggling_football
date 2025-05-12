@@ -1,0 +1,2 @@
+C:/Users/kilic/StudioProjects/footy_testing/android/app/.cxx/Debug/1w1u3q4n/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/kilic/StudioProjects/footy_testing/android/app/.cxx/Debug/1w1u3q4n/armeabi-v7a/CMakeFiles/rebuild_cache.dir

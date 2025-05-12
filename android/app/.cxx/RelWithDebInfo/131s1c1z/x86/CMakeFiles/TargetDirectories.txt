@@ -1,0 +1,2 @@
+C:/Users/kilic/Desktop/BA_KILIC/kopie aktueller stand/footy_testing/android/app/.cxx/RelWithDebInfo/131s1c1z/x86/CMakeFiles/edit_cache.dir
+C:/Users/kilic/Desktop/BA_KILIC/kopie aktueller stand/footy_testing/android/app/.cxx/RelWithDebInfo/131s1c1z/x86/CMakeFiles/rebuild_cache.dir

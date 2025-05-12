@@ -1,0 +1,50 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.footy_testing" 
+    compileSdk = 35 
+    aaptOptions { 
+        noCompress 'tflite'
+        noCompress 'lite'
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.footy_testing" 
+        minSdk = 21 
+        targetSdk = 35
+        versionCode = flutter.versionCode 
+        versionName = flutter.versionName 
+    }
+
+    buildTypes {
+        release {
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation "org.tensorflow:tensorflow-lite:2.10.0"
+    implementation "org.tensorflow:tensorflow-lite-support:0.4.2"
+    implementation "org.tensorflow:tensorflow-lite-gpu:2.10.0"
+    implementation "org.tensorflow:tensorflow-lite-metadata:0.4.2"
+}
