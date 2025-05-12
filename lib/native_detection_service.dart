@@ -4,33 +4,20 @@ import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
-/// NativeDetectionService - Schnittstelle zu nativen Erkennungsfunktionen
-///
-/// Diese Klasse stellt Flutter-Methoden bereit, um mit den nativen Java-Implementierungen
-/// der Pose- und Ballerkennung zu kommunizieren. Sie verwaltet das Laden der ML-Modelle
-/// und die Konvertierung der Kamerabilder für die ML-Verarbeitung.
 class NativeDetectionService {
-  // Methodenkanäle für die Kommunikation mit nativem Code
   static const MethodChannel _channel =
       MethodChannel('com.example.footy_testing/detection');
   static const MethodChannel _ballChannel =
       MethodChannel('com.example.footy_testing/ball_detection');
 
-  // Status der Modellladung
   static bool _modelsLoaded = false;
   static bool _ballModelLoaded = false;
 
-  /// Lädt die ML-Modelle für Pose- und Ballerkennung
-  ///
-  /// @param useGpu Gibt an, ob GPU-Beschleunigung verwendet werden soll
-  /// @param retryCount Anzahl der Wiederholungsversuche bei Fehlern
-  /// @return true wenn beide Modelle erfolgreich geladen wurden
   static Future<bool> loadModels(
       {bool useGpu = false, int retryCount = 1}) async {
     try {
       debugPrint('Lade Erkennungsmodelle, Versuche: $retryCount');
 
-      // MoveNet (Pose-Erkennungsmodell) laden
       for (int i = 0; i < retryCount; i++) {
         try {
           debugPrint('MoveNet-Ladeversuch ${i + 1}/$retryCount');
@@ -49,7 +36,6 @@ class NativeDetectionService {
         }
       }
 
-      // YOLOv8 (Ballerkennungsmodell) laden
       for (int i = 0; i < retryCount; i++) {
         try {
           debugPrint(
@@ -80,14 +66,8 @@ class NativeDetectionService {
     }
   }
 
-  /// Erkennt Objekte (primär Personen) im Kamerabild mit MoveNet
-  ///
-  /// @param image Das Kamerabild zur Analyse
-  /// @param isFrontCamera Gibt an, ob die Frontkamera verwendet wird
-  /// @return DetectionResult mit erkannten Personen und Keypoints
   static Future<DetectionResult> detectObjects(CameraImage image,
       {bool isFrontCamera = false}) async {
-    // Stelle sicher, dass Modelle geladen sind
     if (!_modelsLoaded) {
       try {
         final loaded = await loadModels();
@@ -102,7 +82,6 @@ class NativeDetectionService {
     }
 
     try {
-      // Rotationsparameter je nach Plattform und Kamera
       int rotation = 0;
       if (Platform.isAndroid) {
         rotation = isFrontCamera ? 270 : 90;
@@ -110,7 +89,6 @@ class NativeDetectionService {
       debugPrint(
           'Kamera-Rotation: $rotation Grad, Frontkamera: $isFrontCamera');
 
-      // Parameter für nativen Aufruf vorbereiten
       final Map<String, dynamic> arguments = {
         'imageBytes': image.planes[0].bytes,
         'width': image.width,
@@ -121,7 +99,6 @@ class NativeDetectionService {
         'isFrontCamera': isFrontCamera,
       };
 
-      // YUV420-Daten hinzufügen, falls verfügbar (für bessere Farbkonvertierung)
       if (image.format.group == ImageFormatGroup.yuv420) {
         if (image.planes.length >= 3) {
           arguments['uPlane'] = image.planes[1].bytes;
@@ -132,7 +109,6 @@ class NativeDetectionService {
         }
       }
 
-      // Native Posenerkennung aufrufen
       final Map<String, dynamic>? result =
           await _channel.invokeMapMethod('detectObjects', arguments);
 
@@ -150,7 +126,6 @@ class NativeDetectionService {
     }
   }
 
-  /// Einfache Testmethode zur Überprüfung der nativen Anbindung
   static Future<String> testConnection() async {
     try {
       final String result = await _channel.invokeMethod('getTestString');
@@ -160,7 +135,6 @@ class NativeDetectionService {
     }
   }
 
-  /// Testet die Ballerkennung mit einem Beispielbild (für Debugging)
   static Future<Map<String, dynamic>> testBallDetection() async {
     try {
       if (!_modelsLoaded) {
@@ -212,14 +186,8 @@ class NativeDetectionService {
     }
   }
 
-  /// Erkennt Fußbälle im Kamerabild mit YOLOv8
-  ///
-  /// @param image Das Kamerabild zur Analyse
-  /// @param isFrontCamera Gibt an, ob die Frontkamera verwendet wird
-  /// @return DetectionResult mit erkannten Bällen und Bounding-Boxen
   static Future<DetectionResult> detectBall(CameraImage image,
       {bool isFrontCamera = false}) async {
-    // Stelle sicher, dass das Ballerkennungsmodell geladen ist
     if (!_ballModelLoaded) {
       try {
         final loaded = await loadModels();
@@ -234,13 +202,11 @@ class NativeDetectionService {
     }
 
     try {
-      // Rotationsparameter je nach Plattform und Kamera
       int rotation = 0;
       if (Platform.isAndroid) {
         rotation = isFrontCamera ? 270 : 90;
       }
 
-      // Parameter für nativen Aufruf vorbereiten
       final Map<String, dynamic> arguments = {
         'imageBytes': image.planes[0].bytes,
         'width': image.width,
@@ -249,7 +215,6 @@ class NativeDetectionService {
         'isFrontCamera': isFrontCamera,
       };
 
-      // YUV420-Daten hinzufügen, falls verfügbar (für bessere Farbkonvertierung)
       if (image.format.group == ImageFormatGroup.yuv420) {
         if (image.planes.length >= 3) {
           arguments['uPlane'] = image.planes[1].bytes;
@@ -259,7 +224,6 @@ class NativeDetectionService {
         }
       }
 
-      // Native Ballerkennung aufrufen
       final Map<String, dynamic>? result =
           await _ballChannel.invokeMapMethod('detectBall', arguments);
 
@@ -285,7 +249,6 @@ class NativeDetectionService {
     }
   }
 
-  /// Gibt alle nativen Ressourcen frei
   static Future<void> dispose() async {
     try {
       await _channel.invokeMethod('dispose');
@@ -297,13 +260,11 @@ class NativeDetectionService {
   }
 }
 
-/// Repräsentiert ein erkanntes Objekt (Person oder Ball)
-/// mit Bounding-Box und optionalen Keypoints
 class DetectedObject {
-  final String tag; // Art des Objekts ("person", "soccer_ball")
-  final double confidence; // Konfidenz der Erkennung (0-1)
-  final List<double> box; // Bounding-Box [x1, y1, x2, y2] (normalisiert 0-1)
-  final List<Keypoint>? keypoints; // Keypoints (nur für Personen)
+  final String tag;
+  final double confidence;
+  final List<double> box;
+  final List<Keypoint>? keypoints;
 
   DetectedObject({
     required this.tag,
@@ -318,13 +279,11 @@ class DetectedObject {
   }
 }
 
-/// Repräsentiert einen Körper-Keypoint (z.B. Schulter, Knie)
-/// mit normalisierten Koordinaten und Konfidenzwert
 class Keypoint {
-  final String name; // Name des Keypoints (z.B. "nose", "left_shoulder")
-  final double x; // X-Koordinate (0-1, normalisiert)
-  final double y; // Y-Koordinate (0-1, normalisiert)
-  final double score; // Konfidenz des Keypoints (0-1)
+  final String name;
+  final double x;
+  final double y;
+  final double score;
 
   Keypoint({
     required this.name,
@@ -339,13 +298,11 @@ class Keypoint {
   }
 }
 
-/// Ergebnis einer Erkennungsoperation, mit erkannten Objekten,
-/// Verarbeitungszeit und möglichen Fehlern
 class DetectionResult {
-  final List<DetectedObject> detections; // Liste erkannter Objekte
-  final int processingTimeMs; // Verarbeitungszeit in Millisekunden
-  final String? error; // Fehlermeldung, falls vorhanden
-  final int inferenceTimeMs; // Reine ML-Inferenzzeit in Millisekunden
+  final List<DetectedObject> detections;
+  final int processingTimeMs;
+  final String? error;
+  final int inferenceTimeMs;
 
   DetectionResult({
     required this.detections,
@@ -354,7 +311,6 @@ class DetectionResult {
     this.inferenceTimeMs = 0,
   });
 
-  /// Erstellt ein leeres Erkennungsergebnis
   factory DetectionResult.empty() {
     return DetectionResult(
       detections: [],
@@ -363,7 +319,6 @@ class DetectionResult {
     );
   }
 
-  /// Konvertiert eine Map aus dem nativen Code in ein DetectionResult
   factory DetectionResult.fromMap(Map<String, dynamic> map) {
     try {
       debugPrint('Verarbeite Erkennungsergebnis');
@@ -398,7 +353,6 @@ class DetectionResult {
 
             final String tag = detectionMap['tag'] as String;
 
-            // Konfidenzwert aus 'confidence' oder alternativ 'score' extrahieren
             double confidence = 0.0;
             if (detectionMap.containsKey('confidence')) {
               final dynamic confValue = detectionMap['confidence'];
@@ -412,7 +366,6 @@ class DetectionResult {
                   : (scoreValue as num).toDouble();
             }
 
-            // Bounding-Box extrahieren und validieren
             final dynamic boxValue = detectionMap['box'];
             List<dynamic> boxDynamic;
 
@@ -438,7 +391,6 @@ class DetectionResult {
               continue;
             }
 
-            // Keypoints extrahieren, falls vorhanden (für Personen)
             List<Keypoint>? keypoints;
             if (detectionMap.containsKey('keypoints')) {
               try {
@@ -484,7 +436,6 @@ class DetectionResult {
               }
             }
 
-            // DetectedObject erstellen und zur Liste hinzufügen
             detections.add(DetectedObject(
               tag: tag,
               confidence: confidence,

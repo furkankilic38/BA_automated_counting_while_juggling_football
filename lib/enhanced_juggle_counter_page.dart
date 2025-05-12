@@ -68,7 +68,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
 
   DateTime? _lastJuggleTime;
 
-  // Zur Verfolgung der Schienbein-Position
   List<double> _shinPositionHistory = [];
   int _shinPositionHistoryMaxLength = 5;
 
@@ -78,7 +77,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     _initializeCamera();
     _initializeDetection();
 
-    // Audio Player initialisieren
     _initAudioPlayer();
 
     Timer.periodic(Duration(seconds: 1), (timer) {
@@ -96,7 +94,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
   }
 
   void _initAudioPlayer() async {
-    // AudioPlayer für die Wiedergabe des Zählsounds vorbereiten
     await _audioPlayer.setSource(AssetSource('zaehlsound.mp3'));
     await _audioPlayer.setVolume(1.0);
   }
@@ -154,13 +151,9 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
 
       await _cameraController!.initialize();
 
-      // Kamera-Parameter optimieren für bessere Performance
       try {
-        // Auf manchen Geräten verfügbar, daher in try-catch
         if (Platform.isAndroid) {
-          // Falls verfügbar, reduzieren wir die Aufnahmequalität für schnelleren Verschluss
-          await _cameraController!.setExposureOffset(
-              -1.0); // Leicht unterbelichtet für schnelleren Verschluss
+          await _cameraController!.setExposureOffset(-1.0);
         }
       } catch (e) {
         print("Konnte Kamera-Parameter nicht optimieren: $e");
@@ -256,7 +249,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     );
   }
 
-  /// Verarbeitet die Ergebnisse der Objekterkennung
   void _handleDetectionResult(DetectionResult detectionResult) {
     if (!mounted) return;
 
@@ -326,7 +318,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
           print(
               "   - Mittlere Konfidenz: ${poseKeypoints.map((kp) => kp.confidence).reduce((a, b) => a + b) / poseKeypoints.length}");
 
-          // Relevante Keypoints finden für die Jonglier-Linie
           Keypoint? leftKnee, rightKnee, leftAnkle, rightAnkle;
 
           for (var keypoint in detectedPerson.keypoints!) {
@@ -341,7 +332,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             }
           }
 
-          // Berechne Position zwischen Knie und Knöchel (Mitte des Schienbeins)
           if ((leftKnee != null && leftAnkle != null) ||
               (rightKnee != null && rightAnkle != null)) {
             double currentShinY = 0;
@@ -364,23 +354,18 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             if (count > 0) {
               currentShinY = currentShinY / count;
 
-              // Zur Historie hinzufügen für gleitende Anpassung
               _shinPositionHistory.add(currentShinY);
               if (_shinPositionHistory.length > _shinPositionHistoryMaxLength) {
                 _shinPositionHistory.removeAt(0);
               }
 
-              // Berechne den gleitenden Durchschnitt der Schienbein-Position
-              // für eine sanftere Anpassung der Linie
               double smoothedShinY = 0;
 
               if (_shinPositionHistory.isNotEmpty) {
-                // Stärkere Gewichtung neuerer Positionen
                 double totalWeight = 0;
                 double weightedSum = 0;
 
                 for (int i = 0; i < _shinPositionHistory.length; i++) {
-                  // Gewichtungsfaktor: neuere Positionen sind wichtiger (i+1)
                   double weight = (i + 1);
                   weightedSum += _shinPositionHistory[i] * weight;
                   totalWeight += weight;
@@ -391,7 +376,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
                 smoothedShinY = currentShinY;
               }
 
-              // Linie bei der gewichteten Mitte des Schienbeins setzen
               _kneeLineY = smoothedShinY;
 
               if (_isDebugMode) {
@@ -418,7 +402,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     });
   }
 
-  /// Erkennt Fußball im Kamerabild mit YOLOv8
   Future<void> _detectSoccerBall() async {
     if (!mounted ||
         !_isDetecting ||
@@ -429,8 +412,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
 
     try {
-      // OPTIMIERUNG: Laufzeitparameter - keine Wartezeit zwischen Erkennungen
-      // Ball mit YOLOv8 über Native Service erkennen
       final ballDetectionResult = await NativeDetectionService.detectBall(
           _lastCameraImage!,
           isFrontCamera: _cameraDirection == CameraLensDirection.front);
@@ -447,7 +428,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
 
       setState(() {
-        // Ball aus Detektionen extrahieren
         DetectedObject? detectedBall;
         for (var detection in ballDetectionResult.detections) {
           if (detection.tag.toLowerCase().contains('ball') ||
@@ -469,7 +449,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             print("⚽ Ball erkannt: Konfidenz=${confidence.toStringAsFixed(2)}");
           }
 
-          // Ball-Bounding-Box aktualisieren
           _ballBoundingBox = Rect.fromLTRB(
             box[0] * previewSize.width,
             box[1] * previewSize.height,
@@ -477,14 +456,12 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             box[3] * previewSize.height,
           );
 
-          // Ballposition berechnen für Trajektorie
           final ballCenterX =
               (_ballBoundingBox!.left + _ballBoundingBox!.right) / 2;
           final ballCenterY =
               (_ballBoundingBox!.top + _ballBoundingBox!.bottom) / 2;
           final ballPosition = Offset(ballCenterX, ballCenterY);
 
-          // Nur signifikante Bewegungen zur Trajektorie hinzufügen
           if (_ballTrajectory.isEmpty ||
               (_ballTrajectory.last - ballPosition).distance > 5) {
             _ballTrajectory.add(ballPosition);
@@ -493,7 +470,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             }
           }
 
-          // Prüfe, ob Ball die Knielinie überquert hat
           _checkBallCrossedKneeLine(ballCenterY);
 
           _lastBallCenterY = ballCenterY;
@@ -505,7 +481,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
                 "❌ Kein Ball erkannt (${_failedBallDetections}/${_maxFailedBallDetections})");
           }
 
-          // Nach zu vielen fehlgeschlagenen Erkennungen Ball-Box zurücksetzen
           if (_failedBallDetections >= _maxFailedBallDetections) {
             _ballBoundingBox = null;
             if (_isDebugMode) {
@@ -523,34 +498,27 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Erkennt Jonglieren basierend auf Ballbewegungsmustern
   void _checkBallCrossedKneeLine(double ballCenterY) {
-    // Wenn kein vorheriger Ballpunkt vorhanden ist
     if (_lastBallCenterY == null) {
       return;
     }
 
-    // Entprellen: Zeit seit letzter Jonglierung prüfen
     bool enoughTimePassed = true;
     if (_lastJuggleTime != null) {
       final now = DateTime.now();
       final timeSinceLastJuggle =
           now.difference(_lastJuggleTime!).inMilliseconds;
-      enoughTimePassed = timeSinceLastJuggle >
-          50; // Von 300ms auf 200ms reduziert für schnellere Erkennung
+      enoughTimePassed = timeSinceLastJuggle > 50;
     }
 
-    // Aktuelle Bewegungsrichtung bestimmen und Zustandswechsel erkennen
     bool isNowMovingDown = ballCenterY > _lastBallCenterY!;
     bool directionChanged = isNowMovingDown != _isMovingDown;
 
-    // Ballhöhenhistorie führen
     _ballHeightHistory.add(ballCenterY);
     if (_ballHeightHistory.length > _maxBallHistorySize) {
       _ballHeightHistory.removeAt(0);
     }
 
-    // METHODE 1:
     if (_isMovingDown && !isNowMovingDown && enoughTimePassed) {
       if (_ballHeightHistory.length >= 3) {
         double highestPoint =
@@ -558,14 +526,12 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
         double lowestPoint = _ballHeightHistory.reduce((a, b) => a > b ? a : b);
         double verticalRange = lowestPoint - highestPoint;
 
-        // Minimale Bewegungsschwelle reduziert für empfindlichere Erkennung
         if (verticalRange > 15 && !isNowMovingDown) {
           setState(() {
             _juggleCount++;
             _lastJuggleTime = DateTime.now();
           });
 
-          // Sound abspielen
           _playCountSound();
 
           if (_isDebugMode) {
@@ -597,7 +563,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
     }
 
-    // METHODE 2:
     if (_ballHeightHistory.length >= 4 && enoughTimePassed) {
       double y0 = _ballHeightHistory[_ballHeightHistory.length - 4];
       double y1 = _ballHeightHistory[_ballHeightHistory.length - 3];
@@ -611,14 +576,12 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       double acc1 = v12 - v01;
       double acc2 = v23 - v12;
 
-      // Weniger strikte Bedingungen für mehr Erkennungen
       if ((acc1 > 1 && acc2 < -8 && v23 < 0) || (acc1 > 0 && acc2 < -12)) {
         setState(() {
           _juggleCount++;
           _lastJuggleTime = DateTime.now();
         });
 
-        // Sound abspielen
         _playCountSound();
 
         if (_isDebugMode) {
@@ -635,7 +598,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
     }
 
-    // METHODE 3: Richtungswechsel-Muster (verbessert)
     if (_ballHeightHistory.length >= 5 && enoughTimePassed) {
       List<bool> directions = [];
       for (int i = 0; i < _ballHeightHistory.length - 1; i++) {
@@ -645,19 +607,17 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       bool hasChangeUp = false;
       for (int i = 0; i < directions.length - 1; i++) {
         if (directions[i] && !directions[i + 1]) {
-          hasChangeDown = true; // Wechsel von ab- zu aufwärts
+          hasChangeDown = true;
         }
         if (!directions[i] && directions[i + 1]) {
-          hasChangeUp = true; // Wechsel von auf- zu abwärts
+          hasChangeUp = true;
         }
       }
       double minY = _ballHeightHistory.reduce((a, b) => a < b ? a : b);
       double maxY = _ballHeightHistory.reduce((a, b) => a > b ? a : b);
       double totalRange = maxY - minY;
 
-      // Bewegungsbereich-Schwelle reduziert und zusätzliche Bewegungshäufigkeit geprüft
       if ((hasChangeDown || hasChangeUp) && totalRange > 10) {
-        // Prüfe, ob die letzte Bewegung aufwärts ist oder genügend Bewegung stattfand
         bool lastMovementUp = directions.last == false;
         bool significantMovement = totalRange > 25;
 
@@ -667,7 +627,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
             _lastJuggleTime = DateTime.now();
           });
 
-          // Sound abspielen
           _playCountSound();
 
           if (_isDebugMode) {
@@ -689,18 +648,13 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
     }
 
-    // METHODE 4 (NEU): Erkennung über Schienbein-Interaktion
     if (_kneeLineY != null &&
         _ballHeightHistory.length >= 3 &&
         enoughTimePassed) {
-      // Berechne die Distanz des Balls zur Schienbein-Linie
       double ballToKneeDistance = (_kneeLineY! - ballCenterY).abs();
 
-      // Prüfe, ob der Ball sich in der Nähe der Schienbein-Linie befindet
-      bool isNearKneeLine =
-          ballToKneeDistance < 50; // 50 Pixel Entfernung als Schwelle
+      bool isNearKneeLine = ballToKneeDistance < 50;
 
-      // Bewegungsvektor der letzten Frames
       double recentYMovement = 0;
       if (_ballHeightHistory.length >= 3) {
         double y1 = _ballHeightHistory[_ballHeightHistory.length - 3];
@@ -708,10 +662,8 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
         recentYMovement = y3 - y1;
       }
 
-      // Prüfe, ob der Ball kürzlich die Richtung geändert hat (von unten nach oben)
-      bool hasUpwardMovement = recentYMovement < -5; // Bewegung nach oben
+      bool hasUpwardMovement = recentYMovement < -5;
 
-      // Juggle erkennen, wenn Ball nahe am Schienbein ist und aufwärts geht
       if (isNearKneeLine &&
           hasUpwardMovement &&
           directionChanged &&
@@ -721,7 +673,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
           _lastJuggleTime = DateTime.now();
         });
 
-        // Sound abspielen
         _playCountSound();
 
         if (_isDebugMode) {
@@ -739,11 +690,9 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
     }
 
-    // Status für den nächsten Frame aktualisieren
     _isMovingDown = isNowMovingDown;
     _lastBallCenterY = ballCenterY;
 
-    // Debug-Informationen
     if (_isDebugMode && _fps % 15 == 0) {
       print(
           "🔍 Ball bewegt sich ${_isMovingDown ? "⬇️ ABWÄRTS" : "⬆️ AUFWÄRTS"} (Y=${ballCenterY.toStringAsFixed(1)})");
@@ -753,7 +702,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
         print("   Letzte Bewegung: ${recentMovement.toStringAsFixed(1)}px");
       }
 
-      // Distanz zur Schienbein-Linie anzeigen
       if (_kneeLineY != null) {
         double ballToKneeDistance = (_kneeLineY! - ballCenterY).abs();
         print(
@@ -762,10 +710,8 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Spielt den Zählsound ab
   void _playCountSound() async {
     try {
-      // Den Sound von Beginn an spielen
       await _audioPlayer.play(AssetSource('zaehlsound.mp3'));
     } catch (e) {
       if (_isDebugMode) {
@@ -774,7 +720,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Überprüft, ob TFLite-Modelle und Label-Dateien vorhanden sind
   Future<void> _checkAssets() async {
     try {
       final assetPaths = [
@@ -796,7 +741,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Startet Erkennung und Camera-Stream
   Future<void> _startDetection() async {
     if (_isDetecting) return;
 
@@ -811,8 +755,8 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       _isDetecting = true;
       _statusMessage = "Erkennung läuft...";
       _failedBallDetections = 0;
-      _isDebugMode = true; // Debug-Modus für bessere Überwachung
-      _frameSkip = 0; // Frame-Skipping zurücksetzen
+      _isDebugMode = true;
+      _frameSkip = 0;
       _lastFrameTime = null;
     });
 
@@ -820,20 +764,17 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     print("⚡ Optimierte Performance-Einstellungen aktiv");
 
     try {
-      // Variable zur Überwachung paralleler Verarbeitungen
       bool isCurrentlyProcessing = false;
       int totalFrames = 0;
       int droppedFrames = 0;
       DateTime performanceTrackingStart = DateTime.now();
 
-      // Camera-Stream starten und Bilder verarbeiten
       await _cameraController!.startImageStream((CameraImage image) {
         if (!_isDetecting) return;
 
         _lastCameraImage = image;
         totalFrames++;
 
-        // Performance-Überwachung
         if (totalFrames % 30 == 0) {
           final duration =
               DateTime.now().difference(performanceTrackingStart).inSeconds;
@@ -846,32 +787,26 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
           }
         }
 
-        // Skip-Logik - Verhindert Überlastung durch zu viele parallele Verarbeitungen
         if (isCurrentlyProcessing) {
           droppedFrames++;
           return;
         }
 
-        // Frame-Steuerung für gleichmäßigere Performance
         final now = DateTime.now();
         if (_lastFrameTime != null) {
           final elapsed = now.difference(_lastFrameTime!).inMilliseconds;
           if (elapsed < 1000 / (_targetFps + 2)) {
-            // Leichter Puffer
             droppedFrames++;
             return;
           }
         }
         _lastFrameTime = now;
 
-        // Verarbeitung als aktiv markieren
         isCurrentlyProcessing = true;
 
-        // Pose-Erkennung über MoveNet ausführen mit Vulkan-Delegate
         NativeDetectionService.detectObjects(image,
                 isFrontCamera: _cameraDirection == CameraLensDirection.front)
             .then((result) {
-          // Verarbeitung als abgeschlossen markieren
           isCurrentlyProcessing = false;
 
           if (!mounted) return;
@@ -882,8 +817,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
 
           _handleDetectionResult(result);
 
-          // ÄNDERUNG: Ball-Erkennung direkt nach Pose-Erkennung ausführen
-          // für unmittelbares kontinuierliches Tracking
           if (_lastCameraImage != null) {
             _detectSoccerBall();
           }
@@ -893,14 +826,11 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
                 "📊 STATS: FPS=$_fps, Verarbeitungszeit=${result.processingTimeMs}ms, Inferenz=${result.inferenceTimeMs}ms");
           }
         }).catchError((e) {
-          // Verarbeitung als abgeschlossen markieren, auch bei Fehler
           isCurrentlyProcessing = false;
           print("🚨 Fehler während der Detektion: $e");
         });
       });
 
-      // ÄNDERUNG: Kein separater Timer mehr für die Ball-Erkennung
-      // Die Ball-Erkennung erfolgt nun direkt nach jedem verarbeiteten Frame
       setState(() {
         _statusMessage = "Erkennung aktiv (kontinuierliches Ball-Tracking)";
       });
@@ -913,7 +843,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Stoppt Erkennung und speichert Ergebnisse
   void _stopDetection() async {
     if (!_isDetecting) return;
 
@@ -923,7 +852,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     });
 
     try {
-      // Kamera-Stream stoppen
       if (_cameraController != null && _cameraController!.value.isInitialized) {
         await _cameraController!.stopImageStream();
       }
@@ -931,7 +859,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       print("Fehler beim Stoppen der Bildaufnahme: $e");
     }
 
-    // Jonglier-Ergebnis in Datenbank speichern
     if (_juggleCount > 0) {
       try {
         await DatabaseHelper.instance.addJuggleCount(_juggleCount);
@@ -961,7 +888,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
       }
     }
 
-    // UI zurücksetzen
     setState(() {
       _ballBoundingBox = null;
       _ballTrajectory.clear();
@@ -969,7 +895,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     });
   }
 
-  /// Setzt Jonglierzähler zurück
   void _resetCounter() {
     setState(() {
       _ballTrajectory.clear();
@@ -982,7 +907,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Wechselt zwischen Front- und Rückkamera
   void _toggleCamera() async {
     if (_isDetecting) {
       _stopDetection();
@@ -1004,7 +928,6 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
     }
   }
 
-  /// Schaltet die Taschenlampe ein oder aus
   void _toggleTorch() async {
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||
@@ -1303,8 +1226,7 @@ class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
  */
 class PoseDetectionPainter extends CustomPainter {
   final DetectedObject? person;
-  final List<Offset>
-      ballTrajectory; // Speichert die Ballpositionen (rote Linie deaktiviert)
+  final List<Offset> ballTrajectory;
   final bool showDebug;
   final Size imageSize;
   final Rect? ballBoundingBox;
@@ -1321,20 +1243,17 @@ class PoseDetectionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Nichts zeichnen, wenn keine Person erkannt wurde
     if (person == null ||
         person!.keypoints == null ||
         person!.keypoints!.isEmpty) {
       return;
     }
 
-    // Skalierungsfaktoren für die Koordinaten
     final double scaleX = size.width / imageSize.width;
     final double scaleY = size.height / imageSize.height;
 
     final double mirrorFactor = isFrontCamera ? -1.0 : 1.0;
 
-    // Person-Bounding-Box zeichnen
     Rect scaledRect = Rect.zero;
     if (person!.box.length == 4) {
       final boxPaint = Paint()
@@ -1342,7 +1261,6 @@ class PoseDetectionPainter extends CustomPainter {
         ..strokeWidth = 3.0
         ..style = PaintingStyle.stroke;
 
-      // Bei Frontkamera müssen X-Koordinaten gespiegelt werden
       if (isFrontCamera) {
         scaledRect = Rect.fromLTRB(
             size.width - (person!.box[2] * size.width),
@@ -1360,19 +1278,16 @@ class PoseDetectionPainter extends CustomPainter {
       canvas.drawRect(scaledRect, boxPaint);
     }
 
-    // Keypoints in Map für schnelleren Zugriff
     final Map<String, Keypoint> keypointMap = {};
     for (var keypoint in person!.keypoints!) {
       keypointMap[keypoint.name] = keypoint;
     }
 
-    // Schienbein-Linie zeichnen für Jonglier-Erkennung
     Keypoint? leftKnee = keypointMap['left_knee'];
     Keypoint? rightKnee = keypointMap['right_knee'];
     Keypoint? leftAnkle = keypointMap['left_ankle'];
     Keypoint? rightAnkle = keypointMap['right_ankle'];
 
-    // Schienbein-Linie statt Knie-Linie zeichnen
     if ((leftKnee != null &&
             leftKnee.score > 0.3 &&
             leftAnkle != null &&
@@ -1384,7 +1299,6 @@ class PoseDetectionPainter extends CustomPainter {
       double shinY = 0;
       int count = 0;
 
-      // Durchschnittliche Position zwischen Knie und Knöchel (Schienbein)
       if (leftKnee != null &&
           leftKnee.score > 0.3 &&
           leftAnkle != null &&
@@ -1406,28 +1320,23 @@ class PoseDetectionPainter extends CustomPainter {
       if (count > 0) {
         shinY = shinY / count;
 
-        // Blaue Linie für Schienbein-Höhe
         final shinLinePaint = Paint()
           ..color = Colors.blue.shade600
           ..strokeWidth = 3.0
           ..style = PaintingStyle.stroke;
 
         if (scaledRect != Rect.zero) {
-          // Breite Linie mit Schatten für bessere Sichtbarkeit
           final shadowPaint = Paint()
             ..color = Colors.black.withOpacity(0.5)
             ..strokeWidth = 5.0
             ..style = PaintingStyle.stroke;
 
-          // Erst Schatten zeichnen
           canvas.drawLine(Offset(scaledRect.left, shinY),
               Offset(scaledRect.right, shinY), shadowPaint);
 
-          // Dann blaue Linie darüber
           canvas.drawLine(Offset(scaledRect.left, shinY),
               Offset(scaledRect.right, shinY), shinLinePaint);
 
-          // Optional: "Jonglier-Linie" Text
           if (showDebug) {
             final textPainter = TextPainter(
               text: TextSpan(
@@ -1448,7 +1357,6 @@ class PoseDetectionPainter extends CustomPainter {
       }
     }
 
-    // Ball-Bounding-Box zeichnen (orange)
     if (ballBoundingBox != null) {
       final ballBoxPaint = Paint()
         ..color = Colors.orange
@@ -1472,17 +1380,12 @@ class PoseDetectionPainter extends CustomPainter {
 
       canvas.drawRect(scaledBallRect, ballBoxPaint);
 
-      // Ballmittelpunkt für Debug-Zwecke
       final ballCenter = Offset(
           (scaledBallRect.left + scaledBallRect.right) / 2,
           (scaledBallRect.top + scaledBallRect.bottom) / 2);
 
-      // Ballbewegung anzeigen - ENTFERNT
-      if (ballTrajectory.length >= 2) {
-        // Code zum Zeichnen der Trajektorie entfernt
-      }
+      if (ballTrajectory.length >= 2) {}
 
-      // Optional: "Ball"-Text anzeigen im Debug-Modus
       if (showDebug) {
         final textPainter = TextPainter(
           text: TextSpan(
@@ -1504,7 +1407,6 @@ class PoseDetectionPainter extends CustomPainter {
       }
     }
 
-    // Definition der Verbindungen zwischen Körperpunkten für Skelett
     final List<List<String>> connections = [
       ['left_shoulder', 'right_shoulder'],
       ['left_shoulder', 'left_elbow'],
@@ -1524,7 +1426,6 @@ class PoseDetectionPainter extends CustomPainter {
       ['right_eye', 'right_ear'],
     ];
 
-    // Einstellungen für Linien und Punkte im Skelett
     final Paint linePaint = Paint()
       ..color = Colors.green
       ..strokeWidth = 3.0
@@ -1535,7 +1436,6 @@ class PoseDetectionPainter extends CustomPainter {
       ..strokeWidth = 5.0
       ..style = PaintingStyle.fill;
 
-    // Verbindungen zwischen Keypoints zeichnen (Skelett)
     for (var connection in connections) {
       final String from = connection[0];
       final String to = connection[1];
@@ -1559,7 +1459,6 @@ class PoseDetectionPainter extends CustomPainter {
       }
     }
 
-    // Jeden Keypoint als farbigen Punkt zeichnen
     for (var keypoint in person!.keypoints!) {
       if (keypoint.score > 0.3) {
         final Offset scaledPoint = isFrontCamera
@@ -1567,27 +1466,25 @@ class PoseDetectionPainter extends CustomPainter {
                 keypoint.y * size.height)
             : Offset(keypoint.x * size.width, keypoint.y * size.height);
 
-        // Farbe je nach Körperteil wählen
         Color pointColor;
         double pointSize = 5.0;
 
         if (keypoint.name.contains('ankle') ||
             keypoint.name.contains('knee') ||
             keypoint.name.contains('hip')) {
-          pointColor = Colors.blue; // Beine blau
+          pointColor = Colors.blue;
           if (keypoint.name.contains('ankle')) pointSize = 7.0;
         } else if (keypoint.name.contains('wrist') ||
             keypoint.name.contains('elbow') ||
             keypoint.name.contains('shoulder')) {
-          pointColor = Colors.green; // Arme grün
+          pointColor = Colors.green;
         } else {
-          pointColor = Colors.red; // Kopf rot
+          pointColor = Colors.red;
         }
 
         dotPaint.color = pointColor;
         canvas.drawCircle(scaledPoint, pointSize, dotPaint);
 
-        // Im Debug-Modus Name und Konfidenz anzeigen
         if (showDebug) {
           final textPainter = TextPainter(
             text: TextSpan(
@@ -1647,7 +1544,6 @@ class PoseSkeletonPainter extends CustomPainter {
     this.confidenceThreshold = 0.3,
   });
 
-  // Körperpunkte, die verbunden werden sollen
   static const List<List<String>> edges = [
     ['nose', 'left_eye'],
     ['nose', 'right_eye'],
@@ -1671,19 +1567,16 @@ class PoseSkeletonPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (!showSkeleton || keypoints.isEmpty) return;
 
-    // Grüne Linien für Skelett
     final paint = Paint()
       ..color = Colors.green
       ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke;
 
-    // Rote Punkte für Gelenke
     final jointPaint = Paint()
       ..color = Colors.red
       ..strokeWidth = 6.0
       ..style = PaintingStyle.fill;
 
-    // Optional: Person-Bounding-Box
     if (personBox != null) {
       final boxPaint = Paint()
         ..color = Colors.blue.withOpacity(0.5)
@@ -1692,14 +1585,12 @@ class PoseSkeletonPainter extends CustomPainter {
       canvas.drawRect(personBox!, boxPaint);
     }
 
-    // Keypoints als Punkte zeichnen
     for (var keypoint in keypoints) {
       if (keypoint.confidence >= confidenceThreshold) {
         canvas.drawCircle(keypoint.position, 5.0, jointPaint);
       }
     }
 
-    // Verbindungen zeichnen (Skelett)
     for (var edge in edges) {
       final p1 = _findKeypointByName(edge[0]);
       final p2 = _findKeypointByName(edge[1]);
@@ -1713,7 +1604,6 @@ class PoseSkeletonPainter extends CustomPainter {
     }
   }
 
-  // Keypoint anhand des Namens finden
   PoseKeypoint? _findKeypointByName(String name) {
     try {
       return keypoints.firstWhere((kp) => kp.name == name);

@@ -26,7 +26,8 @@ import io.flutter.plugin.common.MethodChannel;
 /**
  * BallDetectionHelper - Erkennt Fußbälle mit YOLOv8
  * 
- * Diese Klasse verwaltet die Erkennung von Fußbällen über ein TensorFlow Lite YOLOv8-Modell
+ * Diese Klasse verwaltet die Erkennung von Fußbällen über ein TensorFlow Lite
+ * YOLOv8-Modell
  * und kommuniziert mit Flutter über eine MethodChannel.
  */
 public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
@@ -79,22 +80,19 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                     Log.d(TAG, "Lade YOLOv8-Modell: " + modelPath);
                     Log.d(TAG, "Lade Labels: " + labelsPath);
 
-                    
                     Interpreter.Options options = new Interpreter.Options();
                     options.setNumThreads(4);
 
-                    // GPU-Delegate für Vulkan konfigurieren, wenn angefordert
                     if (useGpu) {
                         try {
                             gpuDelegate = new GpuDelegate();
                             options.addDelegate(gpuDelegate);
-                            
-                            // NNAPI nicht gleichzeitig mit GPU verwenden
+
                             options.setUseNNAPI(false);
                             Log.d(TAG, "GPU-Delegate für YOLOv8 aktiviert");
                         } catch (Exception e) {
                             Log.w(TAG, "GPU-Delegate für YOLOv8 nicht verfügbar: " + e.getMessage());
-                            // Fallback auf NNAPI
+
                             try {
                                 options.setUseNNAPI(true);
                                 Log.d(TAG, "Fallback auf NNAPI für YOLOv8");
@@ -114,7 +112,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                     Log.d(TAG, "Verarbeite YOLOv8-Inferenz mit optimierter Konfiguration");
 
                     try {
-                       
+
                         yoloInterpreter = new Interpreter(FileUtil.loadMappedFile(context, modelPath), options);
 
                         int[] inputShape = yoloInterpreter.getInputTensor(0).shape();
@@ -126,7 +124,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                         Log.d(TAG, "Modell geladen - Eingabeform: " + inputShapeStr);
                         Log.d(TAG, "Modell geladen - Ausgabeform: " + outputShapeStr);
 
-                        // Labels 
                         labels = FileUtil.loadLabels(context, labelsPath);
                         Log.d(TAG, "Labels geladen: " + labels.size() + " Klassen");
 
@@ -145,7 +142,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
 
                         result.success(true);
                     } catch (Exception e) {
-                        // Fallback mit minimalen Optionen versuchen
+
                         Log.e(TAG, "Fehler beim Laden des Modells mit ursprünglichen Optionen: " + e.getMessage());
 
                         options = new Interpreter.Options();
@@ -195,13 +192,14 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                     int uvPixelStride = args.containsKey("uvPixelStride") ? (int) args.get("uvPixelStride") : 1;
 
                     int rotation = args.containsKey("rotation") ? (int) args.get("rotation") : 0;
-                    boolean isFrontCamera = args.containsKey("isFrontCamera") ? (boolean) args.get("isFrontCamera") : false;
+                    boolean isFrontCamera = args.containsKey("isFrontCamera") ? (boolean) args.get("isFrontCamera")
+                            : false;
 
-                    Log.d(TAG, "Ball-Erkennung, Bildgröße: " + width + "x" + height + ", Frontkamera: " + isFrontCamera);
+                    Log.d(TAG,
+                            "Ball-Erkennung, Bildgröße: " + width + "x" + height + ", Frontkamera: " + isFrontCamera);
 
                     long startTime = System.currentTimeMillis();
 
-                    // YUV-Farbraum zu Bitmap konvertieren
                     Bitmap bitmap;
                     if (uPlane != null && vPlane != null) {
                         bitmap = yuvPlanesToBitmap(yPlane, uPlane, vPlane, width, height, uvRowStride, uvPixelStride);
@@ -215,35 +213,32 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                         return;
                     }
 
-                    // Bild rotieren falls nötig
                     if (rotation != 0) {
                         try {
-                            // FIX: Bei 90° oder 270° Rotation werden Höhe und Breite getauscht
+
                             Matrix rotationMatrix = new Matrix();
                             rotationMatrix.postRotate(rotation);
-                            
+
                             Bitmap rotatedBitmap = Bitmap.createBitmap(
                                     bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(),
                                     rotationMatrix, true);
-                                    
-                            // Original-Bitmap freigeben wenn es nicht mehr benötigt wird
+
                             if (bitmap != rotatedBitmap) {
                                 bitmap.recycle();
                             }
                             bitmap = rotatedBitmap;
-                            
-                            // Anpassung der Dimensionen nach Rotation
+
                             if (rotation == 90 || rotation == 270) {
-                                // Bei 90° und 270° werden Höhe und Breite getauscht
-                                Log.d(TAG, "Verarbeite Bild: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Frontkamera: " + isFrontCamera);
+
+                                Log.d(TAG, "Verarbeite Bild: " + bitmap.getWidth() + "x" + bitmap.getHeight()
+                                        + ", Frontkamera: " + isFrontCamera);
                             }
                         } catch (OutOfMemoryError e) {
                             Log.e(TAG, "Speicherproblem bei der Bildrotation: " + e.getMessage());
-                            // Keine weiteren Maßnahmen - Nutze das Bild ohne Rotation
+
                         }
                     }
 
-                    // Ball mit YOLOv8 erkennen
                     List<Map<String, Object>> detections = detectBall(bitmap, isFrontCamera);
 
                     long processingTime = System.currentTimeMillis() - startTime;
@@ -282,7 +277,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
     /**
      * Erkennt einen Ball im Bild mit dem YOLOv8-Modell
      * 
-     * @param bitmap Das zu analysierende Bild
+     * @param bitmap        Das zu analysierende Bild
      * @param isFrontCamera Gibt an, ob das Bild von der Frontkamera stammt
      * @return Liste von erkannten Bällen mit Position und Konfidenz
      */
@@ -293,7 +288,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
         }
 
         try {
-            // Modelldimensionen extrahieren
+
             int[] inputShape = yoloInterpreter.getInputTensor(0).shape();
             int modelHeight = inputShape[1];
             int modelWidth = inputShape[2];
@@ -301,19 +296,17 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
 
             float ballThreshold = 0.10f;
 
-            Log.d(TAG, "Verarbeite Bild: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Frontkamera: " + isFrontCamera);
+            Log.d(TAG, "Verarbeite Bild: " + bitmap.getWidth() + "x" + bitmap.getHeight() + ", Frontkamera: "
+                    + isFrontCamera);
 
-            // Bild auf Modellgröße skalieren
             Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, modelWidth, modelHeight, true);
 
-            // Prüfen, ob Modell quantisiert ist (INT8/UINT8)
             boolean isQuantized = yoloInterpreter.getInputTensor(0).dataType() == org.tensorflow.lite.DataType.UINT8 ||
                     yoloInterpreter.getInputTensor(0).dataType() == org.tensorflow.lite.DataType.INT8;
 
-            // Bild in ByteBuffer konvertieren für TFLite-Eingabe
             ByteBuffer imgData;
             if (isQuantized) {
-                // Für quantisierte Modelle (INT8/UINT8)
+
                 imgData = ByteBuffer.allocateDirect(modelWidth * modelHeight * channels);
                 imgData.order(ByteOrder.nativeOrder());
 
@@ -326,7 +319,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                     imgData.put((byte) (pixel & 0xFF));
                 }
             } else {
-                // Für Float-Modelle (FLOAT32)
+
                 imgData = ByteBuffer.allocateDirect(4 * modelWidth * modelHeight * channels);
                 imgData.order(ByteOrder.nativeOrder());
 
@@ -346,7 +339,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
 
             Log.d(TAG, "YOLOv8 Eingabe-Buffer: " + imgData.capacity() + " Bytes");
 
-            // Ausgabe-Buffer vorbereiten
             int[] outputShape = yoloInterpreter.getOutputTensor(0).shape();
             Log.d(TAG, "YOLOv8 Ausgabe-Form: " + Arrays.toString(outputShape));
 
@@ -355,7 +347,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
             Map<Integer, Object> outputMap = new HashMap<>();
             outputMap.put(0, output);
 
-            // YOLOv8-Inferenz ausführen
             long inferenceStartTime = System.currentTimeMillis();
 
             try {
@@ -373,20 +364,19 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                 return new ArrayList<>();
             }
 
-            // Verarbeite YOLOv8-Ergebnisse
             List<Map<String, Object>> ballDetections = new ArrayList<>();
 
             int numClasses = outputShape[1] - 4;
 
             try {
-                // Durchsuche Erkennungen nach Bällen
+
                 for (int i = 0; i < outputShape[2]; i++) {
-                    // Prüfe nur Ball-Klasse, wenn diese gefunden wurde
+
                     if (soccerBallClassId >= 0 && soccerBallClassId < numClasses) {
                         float score = output[0][soccerBallClassId + 4][i];
 
                         if (score > ballThreshold) {
-                            // Bounding-Box-Koordinaten extrahieren
+
                             float x = output[0][0][i];
                             float y = output[0][1][i];
                             float w = output[0][2][i];
@@ -397,20 +387,17 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                             float x2 = x + w / 2;
                             float y2 = y + h / 2;
 
-                            // Bei Frontkamera die X-Koordinaten spiegeln
                             if (isFrontCamera) {
                                 float temp = 1.0f - x1;
                                 x1 = 1.0f - x2;
                                 x2 = temp;
                             }
 
-                            // Koordinaten auf gültigen Bereich [0,1] begrenzen
                             x1 = Math.max(0, Math.min(1, x1));
                             y1 = Math.max(0, Math.min(1, y1));
                             x2 = Math.max(0, Math.min(1, x2));
                             y2 = Math.max(0, Math.min(1, y2));
 
-                            // Ergebnis-Objekt erstellen
                             Map<String, Object> detection = new HashMap<>();
                             detection.put("tag", "soccer_ball");
                             detection.put("confidence", score);
@@ -422,7 +409,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
 
                             ballDetections.add(detection);
 
-                            // Nur den ersten erkannten Ball verwenden
                             break;
                         }
                     }
@@ -468,7 +454,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
     private Bitmap yuvPlanesToBitmap(byte[] yPlane, byte[] uPlane, byte[] vPlane,
             int width, int height, int uvRowStride, int uvPixelStride) {
         try {
-            // YUV420 zu RGB Farbkonvertierung
+
             int[] argb = new int[width * height];
 
             for (int y = 0; y < height; y++) {
@@ -492,7 +478,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
                     int uValue = (uPlane[uIndex] & 0xFF) - 128;
                     int vValue = (vPlane[vIndex] & 0xFF) - 128;
 
-                    // YUV zu RGB Farbumrechnung
                     int y1192 = 1192 * (yValue - 16);
                     int r = (y1192 + 1634 * vValue);
                     int g = (y1192 - 833 * vValue - 400 * uValue);
@@ -520,7 +505,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
      */
     private Bitmap yuvToBitmap(byte[] yPlane, int width, int height) {
         try {
-            // Graustufenbild (Y-Plane) erstellen
+
             Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             int[] pixels = new int[width * height];
 

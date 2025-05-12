@@ -237,7 +237,7 @@ class HomeScreenContent extends StatelessWidget {
         final _HomePageState? homeState =
             context.findAncestorStateOfType<_HomePageState>();
         if (homeState != null) {
-          homeState._onItemTapped(2); // Zum Scoreboard wechseln
+          homeState._onItemTapped(2);
         }
       },
       child: Container(

@@ -28,7 +28,6 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
     final dbHelper = DatabaseHelper.instance;
     final results = await dbHelper.getAllJuggleCounts();
 
-    // Berechne Statistiken
     int total = 0;
     int highest = 0;
 
@@ -286,9 +285,7 @@ class _ScoreboardPageState extends State<ScoreboardPage> {
                 ),
               ),
               trailing: Icon(Icons.chevron_right, color: Colors.grey),
-              onTap: () {
-                // Hier könnte Detail-Ansicht implementiert werden
-              },
+              onTap: () {},
             ),
           );
         },
