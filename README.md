@@ -58,8 +58,8 @@ Footballista ist eine prototypische mobile Anwendung, die mithilfe von maschinel
 ### Installation
 #### Repository klonen
 
-- git clone https://github.com/dein-username/footballista.git
-- cd footballista
+- git clone https://github.com/furkankilic38/BA_automated_counting_while_juggling_football.git
+- cd BA_automated_counting_while_juggling_football
 
 #### Abhängigkeiten installieren
 
