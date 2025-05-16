@@ -1,3 +1,11 @@
+/**
+ * Autor: Furkan Kilic
+ * 
+ * Diese Datei implementiert die Pose-Erkennung mit dem MoveNet-Modell für die Footballista-App.
+ * Stellt eine Schnittstelle zwischen dem Flutter-Framework und den nativen TensorFlow Lite-Funktionen 
+ * für die Körperhaltungserkennung bereit.
+ */
+
 package com.example.footy_testing.pose;
 
 import android.content.Context;
@@ -28,14 +36,7 @@ import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
-/**
- * MoveNetHelper - Posen-Erkennung mit MoveNet
- * 
- * Diese Klasse verwaltet die Erkennung von Körper-Posen über ein TensorFlow
- * Lite MoveNet-Modell.
- * Sie extrahiert Körper-Keypoints aus Kamerabildern und stellt sie Flutter zur
- * Verfügung.
- */
+
 public class MoveNetHelper implements MethodChannel.MethodCallHandler {
     private static final String TAG = "MoveNetHelper";
     private static final String CHANNEL = "com.example.footy_testing/detection";
@@ -53,9 +54,7 @@ public class MoveNetHelper implements MethodChannel.MethodCallHandler {
     private Interpreter moveNetInterpreter;
     private GpuDelegate gpuDelegate;
 
-    /**
-     * Registriert die MethodChannel beim Flutter-Plugin
-     */
+   
     public static void registerWith(FlutterEngine flutterEngine, Context context) {
         MethodChannel channel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL);
         MoveNetHelper helper = new MoveNetHelper(context);
@@ -66,9 +65,7 @@ public class MoveNetHelper implements MethodChannel.MethodCallHandler {
         this.context = context;
     }
 
-    /**
-     * Verarbeitet Methoden-Aufrufe von Flutter
-     */
+    
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         switch (call.method) {
@@ -479,7 +476,7 @@ public class MoveNetHelper implements MethodChannel.MethodCallHandler {
     }
 
     /**
-     * Erstellt ein Graustufenbild aus dem Y-Plane (Fallback-Methode)
+     * (Fallback)
      */
     private Bitmap yuvToBitmap(byte[] yPlane, int width, int height) {
         try {
@@ -504,11 +501,7 @@ public class MoveNetHelper implements MethodChannel.MethodCallHandler {
         }
     }
 
-    /**
-     * Konvertiert YUV-Planes zu einem RGB-Bitmap
-     * 
-     * Diese Methode wandelt YUV420-Daten aus der Kamera in ein RGB-Bitmap um.
-     */
+    
     private Bitmap yuvPlanesToBitmap(byte[] yPlane, byte[] uPlane, byte[] vPlane,
             int width, int height, int uvRowStride, int uvPixelStride) {
         try {
@@ -559,9 +552,7 @@ public class MoveNetHelper implements MethodChannel.MethodCallHandler {
         }
     }
 
-    /**
-     * Gibt alle nativen Ressourcen frei
-     */
+   
     private void dispose() {
         if (moveNetInterpreter != null) {
             moveNetInterpreter.close();

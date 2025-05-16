@@ -1,3 +1,11 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Haupteinstiegspunkt der Footballista-App.
+/// Initialisiert die App, richtet die Datenbankverbindung ein und definiert
+/// die wichtigsten Routen der Anwendung.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'homepage.dart';
@@ -16,10 +24,10 @@ void main() async {
       title: 'Footballista',
       initialRoute: '/',
       routes: {
-        '/': (context) => SplashScreenPage(),
-        '/login': (context) => LoginPage(),
-        '/home': (context) => HomePage(),
-        '/enhanced_juggle': (context) => EnhancedJuggleCounterPage(),
+        '/': (context) => const SplashScreenPage(),
+        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+        '/enhanced_juggle': (context) => const EnhancedJuggleCounterPage(),
       },
       debugShowCheckedModeBanner: false,
     ),

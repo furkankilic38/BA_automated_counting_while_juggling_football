@@ -1,3 +1,11 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Implementierung der Jonglierzähl-Seite der Footballista-App.
+/// Verwendet die Kamera und KI-Modelle zur Erkennung und Zählung von Fußball-Jonglierübungen
+/// in Echtzeit.
+/// ===========================================
+library;
+
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:io';
@@ -9,6 +17,8 @@ import 'native_detection_service.dart';
 import 'database_helper.dart';
 
 class EnhancedJuggleCounterPage extends StatefulWidget {
+  const EnhancedJuggleCounterPage({super.key});
+
   @override
   _EnhancedJuggleCounterPageState createState() =>
       _EnhancedJuggleCounterPageState();
@@ -16,7 +26,7 @@ class EnhancedJuggleCounterPage extends StatefulWidget {
 
 class _EnhancedJuggleCounterPageState extends State<EnhancedJuggleCounterPage> {
   CameraController? _cameraController;
-  AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   bool _isInitialized = false;
   bool _isDetecting = false;

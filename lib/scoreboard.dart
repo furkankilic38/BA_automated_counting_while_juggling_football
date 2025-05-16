@@ -1,8 +1,17 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Scoreboard-Seite der Footy-App.
+/// Zeigt Statistiken und Aufzeichnungen der Jonglierleistungen des Benutzers an.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'database_helper.dart';
 
 class ScoreboardPage extends StatefulWidget {
+  const ScoreboardPage({super.key});
+
   @override
   _ScoreboardPageState createState() => _ScoreboardPageState();
 }

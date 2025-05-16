@@ -1,3 +1,11 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Database Helper für die Footy-App.
+/// Stellt Funktionen zur Verwaltung der lokalen SQLite-Datenbank bereit,
+/// inkl. Benutzerauthentifizierung und Speicherung von Erkennungsergebnissen.
+/// ===========================================
+library;
+
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';

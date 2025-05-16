@@ -1,3 +1,11 @@
+/**
+ * Autor: Furkan Kilic
+ * 
+ * Die Hauptaktivität der Android-App, die das Flutter-Framework integriert.
+ * Hier werden die nativen Erkennung-Services (MoveNetHelper und BallDetectionHelper) 
+ * mit dem Flutter-Framework verbunden.
+ */
+
 package com.example.footy_testing;
 
 import androidx.annotation.NonNull;

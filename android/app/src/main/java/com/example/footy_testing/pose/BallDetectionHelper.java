@@ -1,3 +1,11 @@
+/**
+ * Autor: Furkan Kilic
+ * 
+ * Diese Datei implementiert die Ballerkennung mit dem YOLOv8-Modell für die Footballista-App.
+ * Ermöglicht die Erkennung von Fußbällen in Bildern und stellt eine Schnittstelle zwischen 
+ * dem Flutter-Framework und den nativen Objekterkennungsfunktionen bereit.
+ */
+
 package com.example.footy_testing.pose;
 
 import android.content.Context;
@@ -23,13 +31,6 @@ import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
-/**
- * BallDetectionHelper - Erkennt Fußbälle mit YOLOv8
- * 
- * Diese Klasse verwaltet die Erkennung von Fußbällen über ein TensorFlow Lite
- * YOLOv8-Modell
- * und kommuniziert mit Flutter über eine MethodChannel.
- */
 public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
     private static final String TAG = "BallDetectionHelper";
     private static final String CHANNEL = "com.example.footy_testing/ball_detection";
@@ -46,9 +47,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
     private long totalInferenceTime = 0;
     private double movingAvgInferenceTime = 0;
 
-    /**
-     * Registriert die MethodChannel beim Flutter-Plugin
-     */
     public static void registerWith(FlutterEngine flutterEngine, Context context) {
         MethodChannel channel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL);
         BallDetectionHelper helper = new BallDetectionHelper(context);
@@ -59,9 +57,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
         this.context = context;
     }
 
-    /**
-     * Verarbeitet Methoden-Aufrufe von Flutter
-     */
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         switch (call.method) {
@@ -427,9 +422,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
         }
     }
 
-    /**
-     * Gibt alle nativen Ressourcen frei
-     */
     public void dispose() {
         try {
             if (yoloInterpreter != null) {
@@ -448,9 +440,6 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
         }
     }
 
-    /**
-     * Konvertiert YUV-Planes zu einem RGB-Bitmap
-     */
     private Bitmap yuvPlanesToBitmap(byte[] yPlane, byte[] uPlane, byte[] vPlane,
             int width, int height, int uvRowStride, int uvPixelStride) {
         try {
@@ -501,7 +490,7 @@ public class BallDetectionHelper implements MethodChannel.MethodCallHandler {
     }
 
     /**
-     * Erstellt ein Graustufenbild aus dem Y-Plane (Fallback)
+     * (Fallback)
      */
     private Bitmap yuvToBitmap(byte[] yPlane, int width, int height) {
         try {

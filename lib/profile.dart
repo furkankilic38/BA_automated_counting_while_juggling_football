@@ -1,8 +1,17 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Profil-Seite der Footballista-App.
+/// Zeigt Benutzerinformationen an und ermöglicht das Abmelden aus der App.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_helper.dart';
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }

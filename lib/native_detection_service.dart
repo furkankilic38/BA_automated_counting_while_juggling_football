@@ -1,3 +1,11 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Native Detection Service für die Footballista-App.
+/// Stellt eine Brücke zwischen dem Flutter-Framework und den nativen Erkennungsfunktionen
+/// für Körperposen und Fußbälle bereit.
+/// ===========================================
+library;
+
 import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';

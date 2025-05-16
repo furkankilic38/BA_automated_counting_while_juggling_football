@@ -1,9 +1,19 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Login-Seite der Footballista-App.
+/// Ermöglicht Benutzern die Anmeldung mit ihren Zugangsdaten und bietet
+/// Navigation zur Registrierungsseite.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database_helper.dart';
 import 'registration.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }

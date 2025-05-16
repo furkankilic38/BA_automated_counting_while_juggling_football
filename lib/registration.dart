@@ -1,7 +1,16 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Registrierungs-Seite der Footballista-App.
+/// Ermöglicht neuen Benutzern die Erstellung eines Kontos mit persönlichen Informationen.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 
 class RegistrationPage extends StatefulWidget {
+  const RegistrationPage({super.key});
+
   @override
   _RegistrationPageState createState() => _RegistrationPageState();
 }

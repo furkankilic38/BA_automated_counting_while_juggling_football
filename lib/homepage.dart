@@ -1,12 +1,20 @@
+/// ===========================================
+/// Autor: Furkan Kilic
+/// Beschreibung: Die Hauptseite der Footballista-App.
+/// Implementiert das Hauptmenü mit Navigation zu den verschiedenen Funktionen
+/// wie Training, Scoreboard und Profil.
+/// ===========================================
+library;
+
 import 'package:flutter/material.dart';
-import 'old_files/camerapage.dart';
-import 'old_files/juggle_counter_page.dart';
 import 'scoreboard.dart';
 import 'profile.dart';
 import 'database_helper.dart';
 import 'enhanced_juggle_counter_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -23,9 +31,9 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _pages = [
       HomeScreenContent(firstname: firstname, username: username),
-      EnhancedJuggleCounterPage(),
-      ScoreboardPage(),
-      ProfilePage(),
+      const EnhancedJuggleCounterPage(),
+      const ScoreboardPage(),
+      const ProfilePage(),
     ];
     _loadUserData();
   }
@@ -115,7 +123,11 @@ class HomeScreenContent extends StatelessWidget {
   final String firstname;
   final String username;
 
-  HomeScreenContent({required this.firstname, required this.username});
+  const HomeScreenContent({
+    super.key,
+    required this.firstname,
+    required this.username,
+  });
 
   @override
   Widget build(BuildContext context) {
